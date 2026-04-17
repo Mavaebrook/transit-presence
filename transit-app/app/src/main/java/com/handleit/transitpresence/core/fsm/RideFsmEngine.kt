@@ -50,7 +50,8 @@ class RideFsmEngine @Inject constructor(
 
     // ── Transition table ─────────────────────────────────────────────────────
 
-    private fun transition(state: RideState, event: RideEvent): RideState? = when (state) {
+    private fun transition(state: RideState, event: RideEvent): RideState? {
+        return when (state) {
 
         // ── IDLE ──────────────────────────────────────────────────────────────
         is RideState.Idle -> when (event) {
