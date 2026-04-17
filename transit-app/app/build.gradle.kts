@@ -96,10 +96,8 @@ dependencies {
     implementation(libs.okhttp.logging)
 
     // Protobuf for GTFS-RT
-    implementation(libs.protobuf.kotlin.lite)
-    implementation(libs.gtfs.realtime.bindings) {
-    exclude(group = "com.google.protobuf", module = "protobuf-java")
-}
+    implementation(libs.gtfs.realtime.bindings) 
+
     // Maps
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
