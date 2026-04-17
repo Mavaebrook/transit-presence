@@ -96,8 +96,9 @@ dependencies {
 
     // Protobuf for GTFS-RT
     implementation(libs.protobuf.kotlin.lite)
-    implementation(libs.gtfs.realtime.bindings)
-
+    implementation(libs.gtfs.realtime.bindings) {
+    exclude(group = "com.google.protobuf", module = "protobuf-java")
+}
     // Maps
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
