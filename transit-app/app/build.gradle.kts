@@ -22,11 +22,11 @@ android {
 
         // GTFS-RT feed URL — override per flavor or BuildConfig field
         buildConfigField("String", "GTFS_RT_VEHICLE_POSITIONS_URL",
-            "\"http://gtfsrt.golynx.com/gtfsrt/GTFS_VehiclePositions.pb"")
+            "\"http://gtfsrt.golynx.com/gtfsrt/GTFS_VehiclePositions.pb\"")
         buildConfigField("String", "GTFS_RT_TRIP_UPDATES_URL",
-            "\"http://gtfsrt.golynx.com/gtfsrt/GTFS_TripUpdates.pb"")
+            "\"http://gtfsrt.golynx.com/gtfsrt/GTFS_TripUpdates.pb\"")
         buildConfigField("String", "GTFS_STATIC_BASE_URL",
-            "\"http://gtfsrt.golynx.com/gtfsrt/"")
+            "\"http://gtfsrt.golynx.com/gtfsrt/\"")
 
         // Fusion thresholds (overridable per flavor)
         buildConfigField("float", "ON_BUS_CONFIDENCE_THRESHOLD", "0.85f")
@@ -96,6 +96,7 @@ dependencies {
 
     // Protobuf for GTFS-RT
     implementation(libs.protobuf.kotlin.lite)
+    implementation(libs.gtfs.realtime.bindings)
 
     // Maps
     implementation(libs.maps.compose)

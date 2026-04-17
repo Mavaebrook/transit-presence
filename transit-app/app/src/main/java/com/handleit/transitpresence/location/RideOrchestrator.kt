@@ -2,6 +2,7 @@ package com.handleit.transitpresence.location
 
 import com.handleit.transitpresence.core.fsm.*
 import com.handleit.transitpresence.core.fusion.BayesianFusionEngine
+import com.handleit.transitpresence.core.fusion.RouteAlignmentEngine
 import com.handleit.transitpresence.core.model.*
 import com.handleit.transitpresence.data.gtfs.*
 import com.handleit.transitpresence.data.gtfsrt.GtfsRtClient

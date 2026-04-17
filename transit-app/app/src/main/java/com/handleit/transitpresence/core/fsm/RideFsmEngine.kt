@@ -60,7 +60,7 @@ class RideFsmEngine @Inject constructor(
                     // Find the nearest stop — caller provides route; stop from geofence context needed
                     // In practice, this transition is triggered after a geofence event sets pending stop
                     it
-                } ?: return null,
+                } ?: return@transition null,
                 route = event.route,
                 arrivals = emptyList(),
             )
@@ -120,7 +120,7 @@ class RideFsmEngine @Inject constructor(
                 } else null
 
             is RideEvent.TripMatchUpdated -> {
-                val candidate = event.candidate ?: return null
+                val candidate = event.candidate ?: return@transition null
                 if (candidate.gtfsTripMatchConfidence > 0.85f) {
                     // Skipped BOARDING_WINDOW — user already boarded
                     RideState.OnBus(trip = candidate, fusionResult = FusionResult(
@@ -151,7 +151,7 @@ class RideFsmEngine @Inject constructor(
             }
 
             is RideEvent.TripMatchUpdated -> {
-                val candidate = event.candidate ?: return null
+                val candidate = event.candidate ?: return@transition null
                 if (candidate.gtfsTripMatchConfidence > 0.85f ||
                     candidate.routeAlignmentScore > 0.80f) {
                     RideState.OnBus(trip = candidate, fusionResult = FusionResult(
@@ -217,7 +217,7 @@ class RideFsmEngine @Inject constructor(
                 state.copy(trip = state.trip.copy(nextStop = event.newNextStop))
 
             is RideEvent.ApproachingDestination -> {
-                val dest = state.trip.destinationStop ?: return null
+                val dest = state.trip.destinationStop ?: return@transition null
                 RideState.ApproachingExitStop(
                     trip = state.trip,
                     stopsRemaining = event.stopsRemaining,

@@ -11,6 +11,7 @@ room = "2.6.1"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
 protobuf = "3.25.3"
+gtfsRealtimeBindings = "0.0.8"
 mapsCompose = "4.3.3"
 playServicesMaps = "19.0.0"
 playServicesLocation = "21.2.0"
@@ -57,6 +58,7 @@ okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor",
 
 # Protobuf (GTFS-RT)
 protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-lite", version.ref = "protobuf" }
+gtfs-realtime-bindings = { group = "com.google.transit", name = "gtfs-realtime-bindings", version.ref = "gtfsRealtimeBindings" }
 
 # Maps
 maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }
