@@ -22,11 +22,11 @@ android {
 
         // GTFS-RT feed URL — override per flavor or BuildConfig field
         buildConfigField("String", "GTFS_RT_VEHICLE_POSITIONS_URL",
-            "\"https://api.example.com/gtfs-rt/vehicle-positions\"")
+            "\"http://gtfsrt.golynx.com/gtfsrt/GTFS_VehiclePositions.pb"")
         buildConfigField("String", "GTFS_RT_TRIP_UPDATES_URL",
-            "\"https://api.example.com/gtfs-rt/trip-updates\"")
+            "\"http://gtfsrt.golynx.com/gtfsrt/GTFS_TripUpdates.pb"")
         buildConfigField("String", "GTFS_STATIC_BASE_URL",
-            "\"https://api.example.com/gtfs/\"")
+            "\"http://gtfsrt.golynx.com/gtfsrt/"")
 
         // Fusion thresholds (overridable per flavor)
         buildConfigField("float", "ON_BUS_CONFIDENCE_THRESHOLD", "0.85f")
@@ -35,7 +35,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("boolean", "MOCK_MODE_DEFAULT", "true")
+            buildConfigField("boolean", "MOCK_MODE_DEFAULT", "false")
             applicationIdSuffix = ".debug"
         }
         release {
