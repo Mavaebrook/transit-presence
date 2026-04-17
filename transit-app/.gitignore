@@ -1,0 +1,24 @@
+# Android / Gradle
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+*.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Keys & secrets — NEVER commit
+google-services.json
+keystore.jks
+*.keystore
+signing.properties
+secrets.properties
+
+# Generated
+app/src/main/java/com/handleit/transitpresence/BuildConfig.java
+app/release/
+
+# Test results
+app/src/test/results/
