@@ -58,16 +58,20 @@ class LocationModule @Inject constructor(
 
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
-                result.lastLocation?.let { location ->
-                    val ctx = LocationContext(
-                        latLng = LatLng(location.latitude, location.longitude),
-                        accuracyMeters = location.accuracy,
-                        speedMps = location.speed,
-                        bearingDeg = location.bearing,
-                        timestampMs = location.time,
-                        motionState = classifyMotion(location.speed),
-                    )
-                    trySend(ctx)
+                try {
+                    result.lastLocation?.let { location ->
+                        val ctx = LocationContext(
+                            latLng = LatLng(location.latitude, location.longitude),
+                            accuracyMeters = location.accuracy,
+                            speedMps = location.speed,
+                            bearingDeg = location.bearing,
+                            timestampMs = location.time,
+                            motionState = classifyMotion(location.speed),
+                        )
+                        trySend(ctx)
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "Location: Exception in onLocationResult")
                 }
             }
         }
@@ -150,12 +154,24 @@ class LocationModule @Inject constructor(
      * Returns -1f if Wi-Fi scanning is unavailable or permission denied.
      */
     @SuppressLint("MissingPermission")
-    fun scanWifiConfidence(knownTransitSsids: Set<String>): Float {
+    suspend fun scanWifiConfidence(knownTransitSsids: Set<String>): Float {
         // Android 13+ requires NEARBY_WIFI_DEVICES permission for scan results
         if (!hasWifiScanPermission()) return -1f
 
         val wifiManager = context.applicationContext
             .getSystemService(Context.WIFI_SERVICE) as? WifiManager ?: return -1f
+
+        // For Android 10+, startScan is required before getting results
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                wifiManager.startScan()
+                // Wait a bit for scan to complete
+                kotlinx.coroutines.delay(2000L)
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to start WiFi scan")
+                return -1f
+            }
+        }
 
         @Suppress("DEPRECATION")
         val results = wifiManager.scanResults
@@ -203,29 +219,33 @@ class LocationModule @Inject constructor(
  */
 class GeofenceBroadcastReceiver : android.content.BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val geofencingEvent = GeofencingEvent.fromIntent(intent) ?: return
-        if (geofencingEvent.hasError()) {
-            Timber.e("Geofence: Error ${geofencingEvent.errorCode}")
-            return
-        }
-
-        val transition = geofencingEvent.geofenceTransition
-        val triggeringGeofences = geofencingEvent.triggeringGeofences ?: return
-
-        val stopIds = triggeringGeofences
-            .mapNotNull { it.requestId.removePrefix(LocationModule.GEOFENCE_STOP_REQUEST_ID_PREFIX) }
-
-        Timber.d("Geofence: transition=$transition stopIds=$stopIds")
-
-        // Dispatch to RideOrchestrator via Hilt entry point
-        val orchestrator = GeofenceEntryPoint.getOrchestrator(context)
-        stopIds.forEach { stopId ->
-            when (transition) {
-                Geofence.GEOFENCE_TRANSITION_ENTER ->
-                    orchestrator.onGeofenceEntered(stopId)
-                Geofence.GEOFENCE_TRANSITION_EXIT ->
-                    orchestrator.onGeofenceExited(stopId)
+        try {
+            val geofencingEvent = GeofencingEvent.fromIntent(intent) ?: return
+            if (geofencingEvent.hasError()) {
+                Timber.e("Geofence: Error ${geofencingEvent.errorCode}")
+                return
             }
+
+            val transition = geofencingEvent.geofenceTransition
+            val triggeringGeofences = geofencingEvent.triggeringGeofences ?: return
+
+            val stopIds = triggeringGeofences
+                .mapNotNull { it.requestId.removePrefix(LocationModule.GEOFENCE_STOP_REQUEST_ID_PREFIX) }
+
+            Timber.d("Geofence: transition=$transition stopIds=$stopIds")
+
+            // Dispatch to RideOrchestrator via Hilt entry point
+            val orchestrator = GeofenceEntryPoint.getOrchestrator(context)
+            stopIds.forEach { stopId ->
+                when (transition) {
+                    Geofence.GEOFENCE_TRANSITION_ENTER ->
+                        orchestrator.onGeofenceEntered(stopId)
+                    Geofence.GEOFENCE_TRANSITION_EXIT ->
+                        orchestrator.onGeofenceExited(stopId)
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Geofence: Exception in onReceive")
         }
     }
 }

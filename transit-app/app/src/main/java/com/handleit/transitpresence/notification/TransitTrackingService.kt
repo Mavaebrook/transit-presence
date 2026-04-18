@@ -107,13 +107,17 @@ class TransitTrackingService : Service(), SensorEventListener {
     // ── SensorEventListener ───────────────────────────────────────────────────
 
     override fun onSensorChanged(event: SensorEvent) {
-        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            val mag = sqrt(
-                event.values[0] * event.values[0] +
-                event.values[1] * event.values[1] +
-                event.values[2] * event.values[2]
-            )
-            orchestrator.updateAccelSample(mag)
+        try {
+            if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+                val mag = sqrt(
+                    event.values[0] * event.values[0] +
+                    event.values[1] * event.values[1] +
+                    event.values[2] * event.values[2]
+                )
+                orchestrator.updateAccelSample(mag)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Sensor: Exception in onSensorChanged")
         }
     }
 

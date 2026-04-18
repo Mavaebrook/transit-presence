@@ -70,17 +70,21 @@ class RideOrchestrator @Inject constructor(
 
     fun onGeofenceEntered(stopId: String) {
         scope.launch {
-            val stop = stopDao.getById(stopId)?.toModel() ?: return@launch
-            Timber.d("Orchestrator: Entered geofence for stop ${stop.stopName}")
+            try {
+                val stop = stopDao.getById(stopId)?.toModel() ?: return@launch
+                Timber.d("Orchestrator: Entered geofence for stop ${stop.stopName}")
 
-            // Register the stop and wait for user to select a route
-            // If we already have a route selected, move to WaitingAtStop immediately
-            val currentState = fsmEngine.currentState
-            if (currentState is RideState.Idle) {
-                // Could auto-trigger if only one route serves this stop
-                // For now, surface nearby stop to UI for user route selection
-                _nearbyStop.value = stop
-                updateGeofencedStopArrivals(stop)
+                // Register the stop and wait for user to select a route
+                // If we already have a route selected, move to WaitingAtStop immediately
+                val currentState = fsmEngine.currentState
+                if (currentState is RideState.Idle) {
+                    // Could auto-trigger if only one route serves this stop
+                    // For now, surface nearby stop to UI for user route selection
+                    _nearbyStop.value = stop
+                    updateGeofencedStopArrivals(stop)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Orchestrator: Exception in onGeofenceEntered")
             }
         }
     }
