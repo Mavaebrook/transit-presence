@@ -51,20 +51,18 @@ class RideFsmEngine @Inject constructor(
     // ── Transition table ─────────────────────────────────────────────────────
 
     private fun transition(state: RideState, event: RideEvent): RideState? {
-        return when (state) {
+        val newState = when (state) {
 
         // ── IDLE ──────────────────────────────────────────────────────────────
         is RideState.Idle -> when (event) {
             is RideEvent.EnteredStopGeofence -> null // Wait for route to be available
-            is RideEvent.RouteSelected -> RideState.WaitingAtStop(
-                stop = event.destinationStop?.let {
-                    // Find the nearest stop — caller provides route; stop from geofence context needed
-                    // In practice, this transition is triggered after a geofence event sets pending stop
-                    it
-                } ?: return@transition null,
-                route = event.route,
-                arrivals = emptyList(),
-            )
+            is RideEvent.RouteSelected -> event.destinationStop?.let {
+                RideState.WaitingAtStop(
+                    stop = it,
+                    route = event.route,
+                    arrivals = emptyList(),
+                )
+            } ?: null
             is RideEvent.ResetToIdle -> RideState.Idle
             else -> null
         }
@@ -89,6 +87,7 @@ class RideFsmEngine @Inject constructor(
                         secsToArrival = event.secsToArrival,
                         escalationLevel = EscalationLevel.STRONG,
                     )
+                else -> null
             }
 
             is RideEvent.ExitedStopGeofence -> RideState.Idle
@@ -120,8 +119,7 @@ class RideFsmEngine @Inject constructor(
                     null // wait for TripMatchUpdated
                 } else null
 
-            is RideEvent.TripMatchUpdated -> {
-                val candidate = event.candidate ?: return@transition null
+            is RideEvent.TripMatchUpdated -> event.candidate?.let { candidate ->
                 if (candidate.gtfsTripMatchConfidence > 0.85f) {
                     // Skipped BOARDING_WINDOW — user already boarded
                     RideState.OnBus(trip = candidate, fusionResult = FusionResult(
@@ -131,7 +129,7 @@ class RideFsmEngine @Inject constructor(
                         meetsThreshold = true,
                     ))
                 } else null
-            }
+            } ?: null
 
             is RideEvent.BusArrivalsUpdated -> state.copy(
                 secsToArrival = event.arrivals
@@ -151,8 +149,7 @@ class RideFsmEngine @Inject constructor(
                 else state // Update escalation only
             }
 
-            is RideEvent.TripMatchUpdated -> {
-                val candidate = event.candidate ?: return@transition null
+            is RideEvent.TripMatchUpdated -> event.candidate?.let { candidate ->
                 if (candidate.gtfsTripMatchConfidence > 0.85f ||
                     candidate.routeAlignmentScore > 0.80f) {
                     RideState.OnBus(trip = candidate, fusionResult = FusionResult(
@@ -167,7 +164,7 @@ class RideFsmEngine @Inject constructor(
                         meetsThreshold = true,
                     ))
                 } else null
-            }
+            } ?: null
 
             is RideEvent.UserConfirmedBoarding -> {
                 // Manual override — user tapped "I'm on the bus"
@@ -217,15 +214,14 @@ class RideFsmEngine @Inject constructor(
             is RideEvent.StopSequenceAdvanced ->
                 state.copy(trip = state.trip.copy(nextStop = event.newNextStop))
 
-            is RideEvent.ApproachingDestination -> {
-                val dest = state.trip.destinationStop ?: return@transition null
+            is RideEvent.ApproachingDestination -> state.trip.destinationStop?.let { dest ->
                 RideState.ApproachingExitStop(
                     trip = state.trip,
                     stopsRemaining = event.stopsRemaining,
                     nextStop = state.trip.nextStop,
                     destinationStop = dest,
                 )
-            }
+            } ?: null
 
             is RideEvent.FusionScoreUpdated -> {
                 // If confidence drops significantly, flag it but don't auto-exit
@@ -288,6 +284,8 @@ class RideFsmEngine @Inject constructor(
             is RideEvent.TripDismissed -> RideState.Idle
             else -> null
         }
+    }
+    return newState
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

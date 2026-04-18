@@ -283,13 +283,13 @@ class GtfsStaticParser @Inject constructor(
 
     // ── CSV utilities ──────────────────────────────────────────────────────
 
-    private fun <T> parseCsv(stream: InputStream, mapper: (Map<String, String>) -> T?): List<T> {
+    private suspend fun <T> parseCsv(stream: InputStream, mapper: (Map<String, String>) -> T?): List<T> {
         val results = mutableListOf<T>()
         parseCsvStreaming(stream) { row -> mapper(row)?.let { results.add(it) } }
         return results
     }
 
-    private fun parseCsvStreaming(stream: InputStream, onRow: (Map<String, String>) -> Unit) {
+    private suspend fun parseCsvStreaming(stream: InputStream, onRow: suspend (Map<String, String>) -> Unit) {
         stream.bufferedReader().useLines { lines ->
             var headers: List<String>? = null
             for (line in lines) {
